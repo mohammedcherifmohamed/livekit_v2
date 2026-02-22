@@ -27,7 +27,7 @@ class MeetingController extends Controller
 
         $videoGrant = (new VideoGrant())
             ->setRoomJoin(true)
-            ->setRoom($roomName)
+            ->setRoomName($roomName)
             ->setCanPublish(true)
             ->setCanSubscribe(true);
 
