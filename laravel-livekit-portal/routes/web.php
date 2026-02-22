@@ -2,11 +2,26 @@
 
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\WebAuthController;
+
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/meet/{room}', function ($room) {
-    // Redirect to the Next.js app running on port 3000
-    return redirect("http://localhost:3000/rooms/$room");
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [WebAuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [WebAuthController::class, 'login']);
+    Route::get('/register', [WebAuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [WebAuthController::class, 'register']);
+});
+
+use App\Http\Controllers\RoomController;
+
+Route::middleware('auth')->group(function () {
+    Route::post('/logout', [WebAuthController::class, 'logout'])->name('logout');
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
+    
+    Route::get('/meet/{room}', [RoomController::class, 'show'])->name('room.show');
 });
