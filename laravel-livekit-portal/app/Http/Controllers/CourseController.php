@@ -14,9 +14,8 @@ class CourseController extends Controller
     {
         $user = auth()->user();
 
-        // Owner sees their own courses that are NOT yet active (pending launch)
+        // Owner sees all their courses (both pending and active)
         $myCourses = Course::where('user_id', $user->id)
-            ->where('is_active', false)
             ->latest()
             ->get();
 

@@ -43,9 +43,15 @@
                     <div class="flex flex-col justify-between rounded-xl bg-gray-800/60 border border-gray-700 p-6 hover:border-indigo-500/50 transition">
                         <div>
                             <div class="flex items-center justify-between mb-3">
-                                <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-700 text-gray-300">
-                                    <span class="h-1.5 w-1.5 rounded-full bg-gray-400"></span> Not launched
-                                </span>
+                                @if($course->is_active)
+                                    <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-green-500/20 text-green-300">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse"></span> Live
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-700 text-gray-300">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-gray-400"></span> Not launched
+                                    </span>
+                                @endif
                                 <span class="text-xs text-gray-500 font-mono">{{ $course->room_name }}</span>
                             </div>
                             <h3 class="text-lg font-bold text-white mb-1">{{ $course->title }}</h3>
@@ -55,17 +61,36 @@
                         </div>
 
                         <div class="mt-5 flex gap-3">
-                            {{-- Launch button --}}
-                            <form method="POST" action="{{ route('courses.launch', $course) }}" class="flex-1">
-                                @csrf @method('PATCH')
-                                <button type="submit"
-                                    class="w-full flex justify-center items-center gap-2 py-2.5 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-sm font-semibold transition">
-                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-6.586-3.91A1 1 0 007 8.118v7.764a1 1 0 001.166.98l6.586-1.31A1 1 0 0016 14.572v-2.404a1 1 0 00-.248-.672z"/>
-                                    </svg>
-                                    Launch
-                                </button>
-                            </form>
+                            @if($course->is_active)
+                                {{-- Rejoin button --}}
+                                <form method="POST" action="{{ route('courses.launch', $course) }}" class="flex-1">
+                                    @csrf @method('PATCH')
+                                    <button type="submit"
+                                        class="w-full flex justify-center items-center gap-2 py-2.5 bg-green-600 hover:bg-green-700 rounded-lg text-sm font-semibold transition">
+                                        Join Session
+                                    </button>
+                                </form>
+                                {{-- End button --}}
+                                <form method="POST" action="{{ route('courses.end', $course) }}" class="flex-1">
+                                    @csrf @method('PATCH')
+                                    <button type="submit"
+                                        class="w-full flex justify-center items-center gap-2 py-2.5 bg-red-600 hover:bg-red-700 rounded-lg text-sm font-semibold transition">
+                                        End
+                                    </button>
+                                </form>
+                            @else
+                                {{-- Launch button --}}
+                                <form method="POST" action="{{ route('courses.launch', $course) }}" class="flex-1">
+                                    @csrf @method('PATCH')
+                                    <button type="submit"
+                                        class="w-full flex justify-center items-center gap-2 py-2.5 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-sm font-semibold transition">
+                                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-6.586-3.91A1 1 0 007 8.118v7.764a1 1 0 001.166.98l6.586-1.31A1 1 0 0016 14.572v-2.404a1 1 0 00-.248-.672z"/>
+                                        </svg>
+                                        Launch
+                                    </button>
+                                </form>
+                            @endif
                         </div>
                     </div>
                 @endforeach
