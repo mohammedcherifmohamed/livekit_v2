@@ -23,7 +23,12 @@ class WebAuthController extends Controller
         ]);
 
         if (Auth::attempt($credentials, $request->remember)) {
+            // Preserve the intended URL before session regeneration wipes it
+            $intendedUrl = $request->session()->pull('url.intended');
             $request->session()->regenerate();
+            if ($intendedUrl) {
+                $request->session()->put('url.intended', $intendedUrl);
+            }
             return redirect()->intended('dashboard');
         }
 

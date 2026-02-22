@@ -17,7 +17,8 @@
                 </div>
                 <div class="flex items-center gap-4">
                     @auth
-                        <span>Hi, {{ auth()->user()->name }}</span>
+                        <a href="{{ route('courses.index') }}" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition">Courses</a>
+                        <span class="text-gray-400 text-sm">Hi, {{ auth()->user()->name }}</span>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-md text-sm font-medium">Logout</button>
