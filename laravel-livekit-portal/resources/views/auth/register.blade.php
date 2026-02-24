@@ -5,6 +5,9 @@
     <div class="w-full max-w-md space-y-8 rounded-xl bg-gray-800 p-10 shadow-lg border border-gray-700">
         <div>
             <h2 class="text-center text-3xl font-extrabold text-white">Create your account</h2>
+            <p class="mt-2 text-center text-sm text-gray-400">
+                Choose whether you are registering as a student or a teacher. Your account will be reviewed by an admin.
+            </p>
         </div>
         <form class="mt-8 space-y-6" action="{{ route('register') }}" method="POST">
             @csrf
@@ -19,7 +22,18 @@
                         class="relative block w-full appearance-none rounded-none border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
                         placeholder="Email address">
                 </div>
-                <div>
+                <div class="mb-3">
+                    <label for="role" class="block text-sm font-medium text-gray-300 mb-1">
+                        Register as
+                    </label>
+                    <select id="role" name="role" required
+                        class="relative block w-full appearance-none rounded-md border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm">
+                        <option value="">Select role</option>
+                        <option value="student" {{ old('role') === 'student' ? 'selected' : '' }}>Student</option>
+                        <option value="teacher" {{ old('role') === 'teacher' ? 'selected' : '' }}>Teacher</option>
+                    </select>
+                </div>
+                <div class="mt-3">
                     <input name="password" type="password" required
                         class="relative block w-full appearance-none rounded-none border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
                         placeholder="Password">

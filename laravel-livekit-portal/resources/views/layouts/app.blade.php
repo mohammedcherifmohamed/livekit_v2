@@ -10,14 +10,34 @@
     <nav class="bg-gray-800 border-b border-gray-700">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
-                <div class="flex items-center">
+                <div class="flex items-center space-x-6">
                     <a href="{{ url('/') }}" class="flex-shrink-0">
                         <img src="/images/livekit-meet-home.svg" alt="LiveKit Meet" class="h-8 w-auto">
                     </a>
+                    @auth
+                        <div class="flex items-center space-x-3">
+                            <a href="{{ route('courses.index') }}" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition">
+                                Courses
+                            </a>
+                            @if(auth()->user()->is_admin)
+                                <div class="flex items-center space-x-2 border-l border-gray-700 pl-4">
+                                    <span class="text-xs uppercase tracking-wide text-gray-400">Admin</span>
+                                    <a href="{{ route('admin.categories.index') }}" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition">
+                                        Categories
+                                    </a>
+                                    <a href="{{ route('admin.teachers.index') }}" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition">
+                                        Teachers
+                                    </a>
+                                    <a href="{{ route('admin.students.index') }}" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition">
+                                        Students
+                                    </a>
+                                </div>
+                            @endif
+                        </div>
+                    @endauth
                 </div>
                 <div class="flex items-center gap-4">
                     @auth
-                        <a href="{{ route('courses.index') }}" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition">Courses</a>
                         <span class="text-gray-400 text-sm">Hi, {{ auth()->user()->name }}</span>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf

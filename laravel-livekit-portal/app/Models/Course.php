@@ -11,6 +11,7 @@ class Course extends Model
 
     protected $fillable = [
         'user_id',
+        'category_id',
         'title',
         'description',
         'room_name',
@@ -27,5 +28,13 @@ class Course extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * The category this course belongs to.
+     */
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
     }
 }

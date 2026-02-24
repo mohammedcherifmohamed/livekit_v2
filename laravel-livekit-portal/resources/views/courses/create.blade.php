@@ -29,6 +29,25 @@
                 @enderror
             </div>
 
+            {{-- Category --}}
+            <div>
+                <label for="category_id" class="block text-sm font-medium text-gray-300 mb-1.5">
+                    Category <span class="text-red-400">*</span>
+                </label>
+                <select id="category_id" name="category_id" required
+                       class="block w-full rounded-lg border @error('category_id') border-red-500 @else border-gray-600 @enderror bg-gray-700 px-4 py-3 text-white focus:border-indigo-500 focus:ring-indigo-500 text-sm transition">
+                    <option value="" disabled selected>Select a category</option>
+                    @foreach($categories as $category)
+                        <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                            {{ $category->name }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('category_id')
+                    <p class="mt-1.5 text-xs text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
+
             {{-- Description --}}
             <div>
                 <label for="description" class="block text-sm font-medium text-gray-300 mb-1.5">

@@ -16,13 +16,14 @@ class CourseController extends Controller
 
         // Owner sees all their courses (both pending and active)
         $myCourses = Course::where('user_id', $user->id)
+            ->with('category')
             ->latest()
             ->get();
 
         // Everyone else sees only ACTIVE courses from other users
         $activeCourses = Course::where('is_active', true)
             ->where('user_id', '!=', $user->id)
-            ->with('user')
+            ->with(['user', 'category'])
             ->latest()
             ->get();
 
@@ -34,7 +35,8 @@ class CourseController extends Controller
      */
     public function create()
     {
-        return view('courses.create');
+        $categories = \App\Models\Category::all();
+        return view('courses.create', compact('categories'));
     }
 
     /**
@@ -44,12 +46,14 @@ class CourseController extends Controller
     {
         $validated = $request->validate([
             'title'       => 'required|string|max:255',
+            'category_id' => 'required|exists:categories,id',
             'description' => 'nullable|string|max:1000',
             'room_name'   => 'required|string|max:100|alpha_dash|unique:courses,room_name',
         ]);
 
         Course::create([
             'user_id'     => auth()->id(),
+            'category_id' => $validated['category_id'],
             'title'       => $validated['title'],
             'description' => $validated['description'] ?? null,
             'room_name'   => strtolower($validated['room_name']),
@@ -62,6 +66,7 @@ class CourseController extends Controller
 
     /**
      * Launch a course (set active = true) and redirect creator into the LiveKit room.
+     * Uses the same handover logic as the existing RoomController.
      */
     public function launch(Course $course)
     {
@@ -69,10 +74,8 @@ class CourseController extends Controller
 
         $course->update(['is_active' => true]);
 
-        // Hand the creator off to the Next.js / LiveKit room
-        $token = auth()->user()->createToken('handover_token')->plainTextToken;
-
-        return redirect("http://localhost:3000/rooms/{$course->room_name}?token={$token}");
+        // Reuse the existing room route logic (RoomController@show)
+        return redirect()->route('room.show', $course->room_name);
     }
 
     /**

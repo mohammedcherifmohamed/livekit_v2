@@ -31,6 +31,12 @@
                 </div>
             @endif
 
+            @if (session('status'))
+                <div class="text-green-500 text-sm">
+                    {{ session('status') }}
+                </div>
+            @endif
+
             <div class="flex items-center justify-between">
                 <div class="flex items-center">
                     <input id="remember" name="remember" type="checkbox"

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Teacher;
+use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -22,10 +24,23 @@ class WebAuthController extends Controller
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt($credentials, $request->remember)) {
+        $remember = (bool) $request->input('remember', false);
+
+        if (Auth::attempt($credentials, $remember)) {
             // Preserve the intended URL before session regeneration wipes it
             $intendedUrl = $request->session()->pull('url.intended');
             $request->session()->regenerate();
+
+            $user = Auth::user();
+
+            // Non-admin teachers/students must be approved before accessing the dashboard
+            if (!$user->is_admin && $user->role !== null && !$user->is_approved) {
+                Auth::logout();
+                return back()->withErrors([
+                    'email' => 'Your account is pending admin approval.',
+                ])->onlyInput('email');
+            }
+
             if ($intendedUrl) {
                 $request->session()->put('url.intended', $intendedUrl);
             }
@@ -44,21 +59,34 @@ class WebAuthController extends Controller
 
     public function register(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'role' => ['required', 'in:teacher,student'],
         ]);
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'role' => $validated['role'],
+            'is_approved' => false,
         ]);
 
-        Auth::login($user);
+        if ($validated['role'] === 'teacher') {
+            Teacher::create([
+                'user_id' => $user->id,
+                'status' => 'pending',
+            ]);
+        } else {
+            Student::create([
+                'user_id' => $user->id,
+                'status' => 'pending',
+            ]);
+        }
 
-        return redirect('/dashboard');
+        return redirect()->route('login')->with('status', 'Registration submitted. Please wait for admin approval before logging in.');
     }
 
     public function logout(Request $request)
