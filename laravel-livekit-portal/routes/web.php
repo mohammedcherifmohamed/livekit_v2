@@ -33,6 +33,9 @@ Route::middleware('auth')->group(function () {
     Route::middleware('is_teacher')->group(function () {
         Route::get('/courses/create',            [CourseController::class, 'create'])->name('courses.create');
         Route::post('/courses',                  [CourseController::class, 'store'])->name('courses.store');
+        Route::get('/courses/{course}/edit',     [CourseController::class, 'edit'])->name('courses.edit');
+        Route::put('/courses/{course}',          [CourseController::class, 'update'])->name('courses.update');
+        Route::delete('/courses/{course}',       [CourseController::class, 'destroy'])->name('courses.destroy');
         Route::patch('/courses/{course}/launch', [CourseController::class, 'launch'])->name('courses.launch');
         Route::patch('/courses/{course}/end',    [CourseController::class, 'end'])->name('courses.end');
     });

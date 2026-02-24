@@ -83,37 +83,58 @@
                                 @endif
                             </div>
 
-                            <div class="mt-5 flex gap-3">
-                                @if($course->is_active)
-                                    {{-- Rejoin button --}}
-                                    <form method="POST" action="{{ route('courses.launch', $course) }}" class="flex-1">
-                                        @csrf @method('PATCH')
-                                        <button type="submit"
-                                            class="w-full flex justify-center items-center gap-2 py-2.5 bg-green-600 hover:bg-green-700 rounded-lg text-sm font-semibold transition">
-                                            Join Session
-                                        </button>
-                                    </form>
-                                    {{-- End button --}}
-                                    <form method="POST" action="{{ route('courses.end', $course) }}" class="flex-1">
-                                        @csrf @method('PATCH')
-                                        <button type="submit"
-                                            class="w-full flex justify-center items-center gap-2 py-2.5 bg-red-600 hover:bg-red-700 rounded-lg text-sm font-semibold transition">
-                                            End
-                                        </button>
-                                    </form>
-                                @else
-                                    {{-- Launch button --}}
-                                    <form method="POST" action="{{ route('courses.launch', $course) }}" class="flex-1">
-                                        @csrf @method('PATCH')
-                                        <button type="submit"
-                                            class="w-full flex justify-center items-center gap-2 py-2.5 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-sm font-semibold transition">
-                                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-6.586-3.91A1 1 0 007 8.118v7.764a1 1 0 001.166.98l6.586-1.31A1 1 0 0016 14.572v-2.404a1 1 0 00-.248-.672z"/>
-                                            </svg>
-                                            Launch
-                                        </button>
-                                    </form>
-                                @endif
+                            <div class="mt-5 flex flex-col gap-3">
+                                <div class="flex gap-3">
+                                    @if($course->is_active)
+                                        {{-- Rejoin button --}}
+                                        <form method="POST" action="{{ route('courses.launch', $course) }}" class="flex-1">
+                                            @csrf @method('PATCH')
+                                            <button type="submit"
+                                                class="w-full flex justify-center items-center gap-2 py-2.5 bg-green-600 hover:bg-green-700 rounded-lg text-sm font-semibold transition">
+                                                Join Session
+                                            </button>
+                                        </form>
+                                        {{-- End button --}}
+                                        <form method="POST" action="{{ route('courses.end', $course) }}" class="flex-1">
+                                            @csrf @method('PATCH')
+                                            <button type="submit"
+                                                class="w-full flex justify-center items-center gap-2 py-2.5 bg-red-600 hover:bg-red-700 rounded-lg text-sm font-semibold transition">
+                                                End
+                                            </button>
+                                        </form>
+                                    @else
+                                        {{-- Launch button --}}
+                                        <form method="POST" action="{{ route('courses.launch', $course) }}" class="flex-1">
+                                            @csrf @method('PATCH')
+                                            <button type="submit"
+                                                class="w-full flex justify-center items-center gap-2 py-2.5 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-sm font-semibold transition">
+                                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-6.586-3.91A1 1 0 007 8.118v7.764a1 1 0 001.166.98l6.586-1.31A1 1 0 0016 14.572v-2.404a1 1 0 00-.248-.672z"/>
+                                                </svg>
+                                                Launch
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
+
+                                <div class="flex gap-3">
+                                    <a href="{{ route('courses.edit', $course) }}"
+                                       class="flex-1 flex justify-center items-center py-2.5 px-4 rounded-lg border border-gray-600 hover:border-gray-500 text-sm font-semibold text-gray-300 hover:text-white transition">
+                                        Edit
+                                    </a>
+
+                                    @if(!$course->is_active)
+                                        <form method="POST" action="{{ route('courses.destroy', $course) }}" class="flex-1"
+                                              onsubmit="return confirm('Are you sure you want to delete this course?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                    class="w-full flex justify-center items-center gap-2 py-2.5 bg-gray-800 hover:bg-gray-900 rounded-lg text-sm font-semibold text-red-300 hover:text-red-200 border border-red-500/60">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     @endforeach
@@ -123,51 +144,53 @@
     @endif
 
     {{-- ── LIVE NOW (active courses from other users) ── --}}
-    <section>
-        <h2 class="text-lg font-bold uppercase tracking-wider text-green-400 mb-4 flex items-center gap-2">
-            <span class="h-2 w-2 rounded-full bg-green-400 inline-block animate-pulse"></span>
-            Live Now
-        </h2>
+    @if(!$isTeacher)
+        <section>
+            <h2 class="text-lg font-bold uppercase tracking-wider text-green-400 mb-4 flex items-center gap-2">
+                <span class="h-2 w-2 rounded-full bg-green-400 inline-block animate-pulse"></span>
+                Live Now
+            </h2>
 
-        @if($activeCourses->isEmpty())
-            <div class="rounded-xl border border-dashed border-gray-700 p-10 text-center text-gray-500">
-                No live sessions right now. Check back later.
-            </div>
-        @else
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                @foreach($activeCourses as $course)
-                    <div class="flex flex-col justify-between rounded-xl bg-gray-800/60 border border-green-500/30 p-6 hover:border-green-400/60 transition">
-                        <div>
-                            <div class="flex items-center justify-between mb-3">
-                                <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-green-500/20 text-green-300">
-                                    <span class="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse"></span> Live
-                                </span>
-                                <span class="text-xs text-gray-500 font-mono">{{ $course->room_name }}</span>
+            @if($activeCourses->isEmpty())
+                <div class="rounded-xl border border-dashed border-gray-700 p-10 text-center text-gray-500">
+                    No live sessions right now. Check back later.
+                </div>
+            @else
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                    @foreach($activeCourses as $course)
+                        <div class="flex flex-col justify-between rounded-xl bg-gray-800/60 border border-green-500/30 p-6 hover:border-green-400/60 transition">
+                            <div>
+                                <div class="flex items-center justify-between mb-3">
+                                    <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-green-500/20 text-green-300">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse"></span> Live
+                                    </span>
+                                    <span class="text-xs text-gray-500 font-mono">{{ $course->room_name }}</span>
+                                </div>
+                                <h3 class="text-lg font-bold text-white mb-1">{{ $course->title }}</h3>
+                                @if($course->category)
+                                    <span class="inline-block px-2 py-1 bg-gray-700 text-gray-300 text-xs rounded mb-2">{{ $course->category->name }}</span>
+                                @endif
+                                @if($course->description)
+                                    <p class="text-sm text-gray-400 line-clamp-2">{{ $course->description }}</p>
+                                @endif
+                                <p class="text-xs text-gray-500 mt-2">by {{ $course->user->name }}</p>
                             </div>
-                            <h3 class="text-lg font-bold text-white mb-1">{{ $course->title }}</h3>
-                            @if($course->category)
-                                <span class="inline-block px-2 py-1 bg-gray-700 text-gray-300 text-xs rounded mb-2">{{ $course->category->name }}</span>
-                            @endif
-                            @if($course->description)
-                                <p class="text-sm text-gray-400 line-clamp-2">{{ $course->description }}</p>
-                            @endif
-                            <p class="text-xs text-gray-500 mt-2">by {{ $course->user->name }}</p>
-                        </div>
 
-                        <div class="mt-5">
-                            <a href="{{ route('room.show', $course->room_name) }}"
-                               class="w-full flex justify-center items-center gap-2 py-2.5 bg-green-600 hover:bg-green-700 rounded-lg text-sm font-semibold transition">
-                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                                </svg>
-                                Join Session
-                            </a>
+                            <div class="mt-5">
+                                <a href="{{ route('room.show', $course->room_name) }}"
+                                   class="w-full flex justify-center items-center gap-2 py-2.5 bg-green-600 hover:bg-green-700 rounded-lg text-sm font-semibold transition">
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                    </svg>
+                                    Join Session
+                                </a>
+                            </div>
                         </div>
-                    </div>
-                @endforeach
-            </div>
-        @endif
-    </section>
+                    @endforeach
+                </div>
+            @endif
+        </section>
+    @endif
 
 </div>
 @endsection
