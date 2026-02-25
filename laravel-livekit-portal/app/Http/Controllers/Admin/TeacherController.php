@@ -4,15 +4,16 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Teacher;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
-class TeacherCotroller extends Controller
+class TeacherController extends Controller
 {
     public function index(): View
     {
-        $teachers = Teacher::with('user')->latest()->get();
+        $teachers = Teacher::latest()->get();
 
         return view('admin.teachers.index', compact('teachers'));
     }
@@ -20,10 +21,6 @@ class TeacherCotroller extends Controller
     public function approve(Teacher $teacher): RedirectResponse
     {
         $teacher->update(['status' => 'approved']);
-
-        if ($teacher->user) {
-            $teacher->user->update(['is_approved' => true]);
-        }
 
         return redirect()->route('admin.teachers.index')
             ->with('success', 'Teacher request approved successfully.');
@@ -33,11 +30,18 @@ class TeacherCotroller extends Controller
     {
         $teacher->update(['status' => 'rejected']);
 
-        if ($teacher->user) {
-            $teacher->user->update(['is_approved' => false]);
-        }
-
         return redirect()->route('admin.teachers.index')
             ->with('success', 'Teacher request rejected.');
+    }
+
+    /**
+     * Permanently delete a teacher account (user + teacher record).
+     */
+    public function destroy(Teacher $teacher): RedirectResponse
+    {
+        $teacher->delete();
+
+        return redirect()->route('admin.teachers.index')
+            ->with('success', 'Teacher account deleted successfully.');
     }
 }

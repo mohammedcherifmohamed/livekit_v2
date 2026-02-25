@@ -10,7 +10,7 @@ class Course extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
+        'teacher_id',
         'category_id',
         'title',
         'description',
@@ -25,9 +25,9 @@ class Course extends Model
     /**
      * The user who created/owns this course.
      */
-    public function user()
+    public function teacher()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Teacher::class);
     }
 
     /**

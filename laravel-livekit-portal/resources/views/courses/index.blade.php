@@ -12,9 +12,9 @@
 
     {{-- Page header --}}
     @php
-        $user = auth()->user();
-        $isTeacher = $user && $user->role === 'teacher';
-        $isApprovedTeacher = $isTeacher && $user->is_approved;
+        $user = Auth::guard('web')->user() ?? Auth::guard('teacher')->user() ?? Auth::guard('student')->user();
+        $isTeacher = Auth::guard('teacher')->check();
+        $isApprovedTeacher = $isTeacher && $user->status === 'approved';
     @endphp
     <div class="flex items-center justify-between">
         <div>
@@ -173,7 +173,7 @@
                                 @if($course->description)
                                     <p class="text-sm text-gray-400 line-clamp-2">{{ $course->description }}</p>
                                 @endif
-                                <p class="text-xs text-gray-500 mt-2">by {{ $course->user->name }}</p>
+                                <p class="text-xs text-gray-500 mt-2">by {{ $course->teacher->name }}</p>
                             </div>
 
                             <div class="mt-5">

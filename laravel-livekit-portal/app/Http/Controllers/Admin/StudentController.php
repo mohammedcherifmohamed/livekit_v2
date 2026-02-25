@@ -4,15 +4,16 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Student;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
-class StudentCotroller extends Controller
+class StudentController extends Controller
 {
     public function index(): View
     {
-        $students = Student::with('user')->latest()->get();
+        $students = Student::latest()->get();
 
         return view('admin.students.index', compact('students'));
     }
@@ -20,10 +21,6 @@ class StudentCotroller extends Controller
     public function approve(Student $student): RedirectResponse
     {
         $student->update(['status' => 'approved']);
-
-        if ($student->user) {
-            $student->user->update(['is_approved' => true]);
-        }
 
         return redirect()->route('admin.students.index')
             ->with('success', 'Student request approved successfully.');
@@ -33,11 +30,18 @@ class StudentCotroller extends Controller
     {
         $student->update(['status' => 'rejected']);
 
-        if ($student->user) {
-            $student->user->update(['is_approved' => false]);
-        }
-
         return redirect()->route('admin.students.index')
             ->with('success', 'Student request rejected.');
+    }
+
+    /**
+     * Permanently delete a student account (user + student record).
+     */
+    public function destroy(Student $student): RedirectResponse
+    {
+        $student->delete();
+
+        return redirect()->route('admin.students.index')
+            ->with('success', 'Student account deleted successfully.');
     }
 }

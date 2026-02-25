@@ -15,9 +15,7 @@ class IsTeacher
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $user = $request->user();
-
-        if (!$user || $user->role !== 'teacher' || !$user->is_approved) {
+        if (!auth()->guard('teacher')->check() || auth()->guard('teacher')->user()->status !== 'approved') {
             abort(403, 'Only approved teachers can access this section.');
         }
 

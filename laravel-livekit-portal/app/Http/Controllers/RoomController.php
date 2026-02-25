@@ -8,7 +8,9 @@ class RoomController extends Controller
 {
     public function show($roomName)
     {
-        $user = auth()->user();
+        $user = \Illuminate\Support\Facades\Auth::guard('web')->user() 
+             ?? \Illuminate\Support\Facades\Auth::guard('teacher')->user() 
+             ?? \Illuminate\Support\Facades\Auth::guard('student')->user();
         
         // Generate a temporary token for the Next.js app
         $token = $user->createToken('handover_token')->plainTextToken;

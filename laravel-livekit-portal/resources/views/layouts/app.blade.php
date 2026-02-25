@@ -7,6 +7,9 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
+    @php
+        $currentUser = Auth::guard('web')->user() ?? Auth::guard('teacher')->user() ?? Auth::guard('student')->user();
+    @endphp
     <nav class="bg-gray-800 border-b border-gray-700">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
@@ -14,12 +17,12 @@
                     <a href="{{ url('/') }}" class="flex-shrink-0">
                         <img src="/images/livekit-meet-home.svg" alt="LiveKit Meet" class="h-8 w-auto">
                     </a>
-                    @auth
+                    @if($currentUser)
                         <div class="flex items-center space-x-3">
                             <a href="{{ route('courses.index') }}" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition">
                                 Courses
                             </a>
-                            @if(auth()->user()->is_admin)
+                            @if(Auth::guard('web')->check() && $currentUser->is_admin)
                                 <div class="flex items-center space-x-2 border-l border-gray-700 pl-4">
                                     <span class="text-xs uppercase tracking-wide text-gray-400">Admin</span>
                                     <a href="{{ route('admin.categories.index') }}" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition">
@@ -34,11 +37,11 @@
                                 </div>
                             @endif
                         </div>
-                    @endauth
+                    @endif
                 </div>
                 <div class="flex items-center gap-4">
-                    @auth
-                        <span class="text-gray-400 text-sm">Hi, {{ auth()->user()->name }}</span>
+                    @if($currentUser)
+                        <span class="text-gray-400 text-sm">Hi, {{ $currentUser->name }}</span>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-md text-sm font-medium">Logout</button>
@@ -46,7 +49,7 @@
                     @else
                         <a href="{{ route('login') }}" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Login</a>
                         <a href="{{ route('register') }}" class="bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-md text-sm font-medium text-white transition duration-150 ease-in-out">Register</a>
-                    @endauth
+                    @endif
                 </div>
             </div>
         </div>

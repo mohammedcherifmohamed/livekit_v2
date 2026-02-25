@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class CourseController extends Controller
 {
@@ -12,22 +13,30 @@ class CourseController extends Controller
      */
     public function index()
     {
-        $user = auth()->user();
+        $user = Auth::guard('web')->user() ?? Auth::guard('teacher')->user() ?? Auth::guard('student')->user();
 
-        // Owner sees all their courses (both pending and active)
-        $myCourses = Course::where('user_id', $user->id)
-            ->with('category')
-            ->latest()
-            ->get();
-
-        // Students see ACTIVE courses from other users.
-        // Teachers do not need to see other people's courses.
-        if ($user->role === 'teacher') {
+        if (Auth::guard('teacher')->check()) {
+            // Teacher Dashboard: Their own courses
+            $myCourses = Course::where('teacher_id', $user->id)
+                ->with('category')
+                ->latest()
+                ->get();
             $activeCourses = collect();
+        } elseif (Auth::guard('student')->check()) {
+            // Student Dashboard: Only courses in categories they are enrolled in
+            $categoryIds = $user->enrollments()->pluck('category_id');
+            
+            $myCourses = collect(); // Students don't "own" courses
+            $activeCourses = Course::whereIn('category_id', $categoryIds)
+                ->where('is_active', true)
+                ->with(['teacher', 'category'])
+                ->latest()
+                ->get();
         } else {
+            // Admin or other: See everything (optional)
+            $myCourses = collect();
             $activeCourses = Course::where('is_active', true)
-                ->where('user_id', '!=', $user->id)
-                ->with(['user', 'category'])
+                ->with(['teacher', 'category'])
                 ->latest()
                 ->get();
         }
@@ -49,7 +58,8 @@ class CourseController extends Controller
      */
     public function edit(Course $course)
     {
-        abort_if($course->user_id !== auth()->id(), 403);
+        $userId = Auth::guard('web')->id() ?? Auth::guard('teacher')->id() ?? Auth::guard('student')->id();
+        abort_if($course->teacher_id !== $userId, 403);
 
         $categories = \App\Models\Category::all();
 
@@ -68,8 +78,9 @@ class CourseController extends Controller
             'room_name'   => 'required|string|max:100|alpha_dash|unique:courses,room_name',
         ]);
 
+        $userId = Auth::guard('web')->id() ?? Auth::guard('teacher')->id() ?? Auth::guard('student')->id();
         Course::create([
-            'user_id'     => auth()->id(),
+            'teacher_id'     => $userId,
             'category_id' => $validated['category_id'],
             'title'       => $validated['title'],
             'description' => $validated['description'] ?? null,
@@ -86,7 +97,8 @@ class CourseController extends Controller
      */
     public function update(Request $request, Course $course)
     {
-        abort_if($course->user_id !== auth()->id(), 403);
+        $userId = Auth::guard('web')->id() ?? Auth::guard('teacher')->id() ?? Auth::guard('student')->id();
+        abort_if($course->teacher_id !== $userId, 403);
 
         $validated = $request->validate([
             'title'       => 'required|string|max:255',
@@ -112,7 +124,8 @@ class CourseController extends Controller
      */
     public function launch(Course $course)
     {
-        abort_if($course->user_id !== auth()->id(), 403);
+        $userId = Auth::guard('web')->id() ?? Auth::guard('teacher')->id() ?? Auth::guard('student')->id();
+        abort_if($course->teacher_id !== $userId, 403);
 
         $course->update(['is_active' => true]);
 
@@ -125,7 +138,8 @@ class CourseController extends Controller
      */
     public function end(Course $course)
     {
-        abort_if($course->user_id !== auth()->id(), 403);
+        $userId = Auth::guard('web')->id() ?? Auth::guard('teacher')->id() ?? Auth::guard('student')->id();
+        abort_if($course->teacher_id !== $userId, 403);
 
         $course->update(['is_active' => false]);
 
@@ -138,7 +152,8 @@ class CourseController extends Controller
      */
     public function destroy(Course $course)
     {
-        abort_if($course->user_id !== auth()->id(), 403);
+        $userId = Auth::guard('web')->id() ?? Auth::guard('teacher')->id() ?? Auth::guard('student')->id();
+        abort_if($course->teacher_id !== $userId, 403);
 
         // Optional: prevent deleting while live
         if ($course->is_active) {

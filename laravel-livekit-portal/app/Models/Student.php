@@ -3,20 +3,25 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
-class Student extends Model
+use Laravel\Sanctum\HasApiTokens;
+
+class Student extends Authenticatable
 {
-    use HasFactory;
+    use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
-        'user_id',
+        'name',
+        'email',
+        'password',
         'status',
     ];
 
-    public function user()
+    public function enrollments()
     {
-        return $this->belongsTo(User::class);
+        return $this->hasMany(Enrollment::class);
     }
 }
 

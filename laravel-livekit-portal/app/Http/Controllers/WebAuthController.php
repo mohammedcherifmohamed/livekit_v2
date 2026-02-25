@@ -17,38 +17,58 @@ class WebAuthController extends Controller
         return view('auth.login');
     }
 
+    public function showAdminLogin()
+    {
+        return view('auth.admin-login');
+    }
+
     public function login(Request $request)
     {
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
+            'role' => ['required', 'in:admin,teacher,student'],
         ]);
 
         $remember = (bool) $request->input('remember', false);
+        $role = $credentials['role'];
+        unset($credentials['role']);
 
-        if (Auth::attempt($credentials, $remember)) {
-            // Preserve the intended URL before session regeneration wipes it
-            $intendedUrl = $request->session()->pull('url.intended');
-            $request->session()->regenerate();
+        // Determine which guard to use
+        $guard = match($role) {
+            'teacher' => 'teacher',
+            'student' => 'student',
+            default => 'web',
+        };
 
-            $user = Auth::user();
-
-            // Non-admin teachers/students must be approved before accessing the dashboard
-            if (!$user->is_admin && $user->role !== null && !$user->is_approved) {
-                Auth::logout();
+        // If it's teacher or student, check if they are approved
+        if ($role === 'teacher') {
+            $teacher = Teacher::where('email', $credentials['email'])->first();
+            if ($teacher && $teacher->status !== 'approved') {
                 return back()->withErrors([
-                    'email' => 'Your account is pending admin approval.',
+                    'email' => 'Your teacher account is pending admin approval.',
                 ])->onlyInput('email');
             }
-
-            if ($intendedUrl) {
-                $request->session()->put('url.intended', $intendedUrl);
+        } elseif ($role === 'student') {
+            $student = Student::where('email', $credentials['email'])->first();
+            if ($student && $student->status !== 'approved') {
+                return back()->withErrors([
+                    'email' => 'Your student account is pending admin approval.',
+                ])->onlyInput('email');
             }
+        }
+
+        \Log::info("Login attempt for role: {$role} with email: {$credentials['email']}");
+
+        if (Auth::guard($guard)->attempt($credentials, $remember)) {
+            \Log::info("Login successful for guard: {$guard}");
+            $request->session()->regenerate();
             return redirect()->intended('dashboard');
         }
 
+        \Log::warning("Login failed for guard: {$guard} and email: {$credentials['email']}");
         return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
+            'email' => 'The provided credentials do not match our records for the selected role.',
         ])->onlyInput('email');
     }
 
@@ -66,22 +86,25 @@ class WebAuthController extends Controller
             'role' => ['required', 'in:teacher,student'],
         ]);
 
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'role' => $validated['role'],
-            'is_approved' => false,
-        ]);
+        // Ensure email is not already used in pending teacher/student records
+        if (Teacher::where('email', $validated['email'])->exists() || Student::where('email', $validated['email'])->exists()) {
+            return back()->withErrors([
+                'email' => 'This email is already registered and awaiting approval.',
+            ])->onlyInput('email');
+        }
 
         if ($validated['role'] === 'teacher') {
             Teacher::create([
-                'user_id' => $user->id,
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
                 'status' => 'pending',
             ]);
         } else {
             Student::create([
-                'user_id' => $user->id,
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
                 'status' => 'pending',
             ]);
         }
@@ -91,7 +114,10 @@ class WebAuthController extends Controller
 
     public function logout(Request $request)
     {
-        Auth::logout();
+        Auth::guard('web')->logout();
+        Auth::guard('teacher')->logout();
+        Auth::guard('student')->logout();
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         return redirect('/');

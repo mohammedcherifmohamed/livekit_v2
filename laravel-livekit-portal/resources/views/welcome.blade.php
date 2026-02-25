@@ -26,28 +26,48 @@
             @endauth
         </div>
 
-        {{-- Features section --}}
-        <div class="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="p-6 bg-gray-800/50 rounded-xl border border-gray-700">
-                <div class="h-12 w-12 bg-indigo-500/20 rounded-lg flex items-center justify-center mb-4 text-indigo-400">
-                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                </div>
-                <h3 class="text-lg font-bold mb-2 uppercase">HD Video</h3>
-                <p class="text-gray-400 text-sm">Crystal clear video powered by LiveKit's advanced WebRTC stack.</p>
-            </div>
-            <div class="p-6 bg-gray-800/50 rounded-xl border border-gray-700">
-                <div class="h-12 w-12 bg-purple-500/20 rounded-lg flex items-center justify-center mb-4 text-purple-400">
-                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                </div>
-                <h3 class="text-lg font-bold mb-2 uppercase">Secure</h3>
-                <p class="text-gray-400 text-sm">Encrypted communication and robust Laravel authentication.</p>
-            </div>
-            <div class="p-6 bg-gray-800/50 rounded-xl border border-gray-700">
-                <div class="h-12 w-12 bg-green-500/20 rounded-lg flex items-center justify-center mb-4 text-green-400">
-                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                </div>
-                <h3 class="text-lg font-bold mb-2 uppercase">Fast</h3>
-                <p class="text-gray-400 text-sm">Optimized for low latency and high participant counts.</p>
+        {{-- Categories Section --}}
+        <div class="mt-20">
+            <h2 class="text-3xl font-bold text-white mb-10 text-center uppercase tracking-widest">Explore Categories</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                @foreach($categories as $category)
+                    <div class="group bg-gray-800 rounded-2xl overflow-hidden border border-gray-700 hover:border-indigo-500/50 transition-all duration-300 shadow-xl flex flex-col">
+                        {{-- Category Image --}}
+                        <div class="relative h-32 overflow-hidden">
+                            <img src="{{ $category->image ?? 'https://via.placeholder.com/800x400?text=' . urlencode($category->name) }}" 
+                                 alt="{{ $category->name }}" 
+                                 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent"></div>
+                            <div class="absolute bottom-4 left-4">
+                                <span class="bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-tighter shadow-lg">
+                                    ${{ number_format($category->price, 2) }}
+                                </span>
+                            </div>
+                        </div>
+
+                        {{-- Category Content --}}
+                        <div class="p-6 flex flex-col flex-grow">
+                            <h3 class="text-xl font-bold text-white mb-3 group-hover:text-indigo-400 transition-colors">
+                                {{ $category->name }}
+                            </h3>
+                            <p class="text-gray-400 text-sm leading-relaxed mb-6 line-clamp-3">
+                                {{ $category->description ?? 'No description available for this category yet.' }}
+                            </p>
+                            
+                            <div class="mt-auto flex items-center justify-between">
+                                <a href="{{ route('categories.show', $category) }}" class="inline-flex items-center text-indigo-400 hover:text-indigo-300 font-semibold text-sm transition group-hover:translate-x-1 duration-200">
+                                    View Courses
+                                    <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                                    </svg>
+                                </a>
+                                <span class="text-gray-600 text-xs font-mono uppercase">
+                                    {{ $category->courses_count ?? $category->courses()->count() }} Sessions
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
             </div>
         </div>
     </div>

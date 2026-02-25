@@ -1,24 +1,38 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
 use App\Http\Controllers\WebAuthController;
+use App\Http\Controllers\CategoryController;
+use App\Models\Category;
+use App\Http\Controllers\RoomController;
+use App\Http\Controllers\CourseController;
+use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Admin\TeacherController as AdminTeacherController;
+use App\Http\Controllers\Admin\StudentController as AdminStudentController;
 
 Route::get('/', function () {
-    return view('welcome');
+    $categories = Category::orderBy('price', 'desc')->get();
+    return view('welcome', compact('categories'));
 });
+
+
+
+Route::get('/categories/{category:slug}', [CategoryController::class, 'show'])->name('categories.show');
+Route::post('/categories/{category}/enroll', [CategoryController::class, 'enroll'])->name('categories.enroll')->middleware('auth:student');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [WebAuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [WebAuthController::class, 'login']);
     Route::get('/register', [WebAuthController::class, 'showRegister'])->name('register');
+    // Admin login routes
+    Route::get('/admin/login', [WebAuthController::class, 'showAdminLogin'])->name('admin.login');
+    Route::post('/admin/login', [WebAuthController::class, 'login']); // Re-using the same login logic which handles 'role'
     Route::post('/register', [WebAuthController::class, 'register']);
 });
 
-use App\Http\Controllers\RoomController;
-use App\Http\Controllers\CourseController;
 
-Route::middleware('auth')->group(function () {
+
+Route::middleware('auth:web,teacher,student')->group(function () {
     Route::post('/logout', [WebAuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', function () {
         return view('dashboard');
@@ -41,18 +55,18 @@ Route::middleware('auth')->group(function () {
     });
 });
 
-use App\Http\Controllers\Admin\CategoryController;
-use App\Http\Controllers\Admin\TeacherCotroller as AdminTeacherCotroller;
-use App\Http\Controllers\Admin\StudentCotroller as AdminStudentCotroller;
+
 
 Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::resource('categories', CategoryController::class)->except(['show']);
+    Route::resource('categories', AdminCategoryController::class)->except(['show']);
 
-    Route::get('teachers', [AdminTeacherCotroller::class, 'index'])->name('teachers.index');
-    Route::post('teachers/{teacher}/approve', [AdminTeacherCotroller::class, 'approve'])->name('teachers.approve');
-    Route::post('teachers/{teacher}/reject', [AdminTeacherCotroller::class, 'reject'])->name('teachers.reject');
+    Route::get('teachers', [AdminTeacherController::class, 'index'])->name('teachers.index');
+    Route::post('teachers/{teacher}/approve', [AdminTeacherController::class, 'approve'])->name('teachers.approve');
+    Route::post('teachers/{teacher}/reject', [AdminTeacherController::class, 'reject'])->name('teachers.reject');
+    Route::delete('teachers/{teacher}', [AdminTeacherController::class, 'destroy'])->name('teachers.destroy');
 
-    Route::get('students', [AdminStudentCotroller::class, 'index'])->name('students.index');
-    Route::post('students/{student}/approve', [AdminStudentCotroller::class, 'approve'])->name('students.approve');
-    Route::post('students/{student}/reject', [AdminStudentCotroller::class, 'reject'])->name('students.reject');
+    Route::get('students', [AdminStudentController::class, 'index'])->name('students.index');
+    Route::post('students/{student}/approve', [AdminStudentController::class, 'approve'])->name('students.approve');
+    Route::post('students/{student}/reject', [AdminStudentController::class, 'reject'])->name('students.reject');
+    Route::delete('students/{student}', [AdminStudentController::class, 'destroy'])->name('students.destroy');
 });

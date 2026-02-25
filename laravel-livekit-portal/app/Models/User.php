@@ -24,8 +24,6 @@ class User extends Authenticatable
         'email',
         'password',
         'is_admin',
-        'role',
-        'is_approved',
     ];
 
     /**
@@ -49,26 +47,10 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_admin' => 'boolean',
-            'is_approved' => 'boolean',
         ];
     }
 
-    public function teacher()
-    {
-        return $this->hasOne(Teacher::class);
-    }
 
-    public function student()
-    {
-        return $this->hasOne(Student::class);
-    }
-
-    /**
-     * Courses created by this user.
-     */
-    public function courses()
-    {
-        return $this->hasMany(Course::class);
-    }
+  
 }
 
