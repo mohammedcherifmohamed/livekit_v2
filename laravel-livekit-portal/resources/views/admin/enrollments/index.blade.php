@@ -68,6 +68,19 @@
                                         Reject
                                     </button>
                                 </form>
+                            @elseif($enrollment->status === 'approved')
+                                <form action="{{ route('admin.enrollments.update', $enrollment) }}" method="POST" class="flex items-center bg-gray-800 p-2 rounded-lg border border-gray-700 shadow-inner">
+                                    @csrf
+                                    @method('PUT')
+                                    <input type="number" name="validity_days" value="{{ $enrollment->validity_days }}" required min="1" 
+                                           class="w-20 bg-gray-700 border-gray-600 text-white rounded px-2 py-1 text-sm focus:ring-indigo-500 focus:border-indigo-500 mr-2">
+                                    <button type="submit" class="flex items-center text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                        </svg>
+                                        Update
+                                    </button>
+                                </form>
                             @endif
 
                             <form action="{{ route('admin.enrollments.destroy', $enrollment) }}" method="POST"

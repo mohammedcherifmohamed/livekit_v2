@@ -30,6 +30,20 @@ class EnrollmentController extends Controller
         return back()->with('success', "Enrollment approved for {$request->validity_days} days.");
     }
 
+    public function update(Request $request, Enrollment $enrollment)
+    {
+        $request->validate([
+            'validity_days' => 'required|integer|min:1',
+        ]);
+
+        $enrollment->update([
+            'validity_days' => $request->validity_days,
+            'expires_at' => Carbon::now()->addDays((int) $request->validity_days),
+        ]);
+
+        return back()->with('success', "Enrollment updated. New validity: {$request->validity_days} days from today.");
+    }
+
     public function reject(Enrollment $enrollment)
     {
         $enrollment->update(['status' => 'rejected']);

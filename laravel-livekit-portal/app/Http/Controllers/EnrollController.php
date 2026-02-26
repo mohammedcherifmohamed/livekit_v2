@@ -29,9 +29,9 @@ public function enrollCourse(Request $request,$category_id){
         $category = CategoryModel::findOrFail($category_id);
 
         Enrollment::create([
-            "student_id" => Auth::id(),
+            "student_id" => Auth::guard('student')->id(),
             "category_id" => $category_id,
-
+            "status" => "pending"
         ]);
 
         $data = [

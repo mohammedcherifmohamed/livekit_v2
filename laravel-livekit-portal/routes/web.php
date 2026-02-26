@@ -37,7 +37,14 @@ Route::middleware('guest')->group(function () {
 Route::middleware(['auth:web,teacher,student', 'check_enrollment'])->group(function () {
     Route::post('/logout', [WebAuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', function () {
-        return view('dashboard');
+        $enrollments = [];
+        if (auth()->guard('student')->check()) {
+            $enrollments = \App\Models\Enrollment::where('student_id', auth()->guard('student')->id())
+                ->with('category')
+                ->where('status', 'approved')
+                ->get();
+        }
+        return view('dashboard', compact('enrollments'));
     })->name('dashboard');
 
     Route::get('/meet/{room}', [RoomController::class, 'show'])->name('room.show');
@@ -75,6 +82,7 @@ Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(
     // Enrollment management
     Route::get('enrollments', [EnrollmentController::class, 'index'])->name('enrollments.index');
     Route::post('enrollments/{enrollment}/approve', [EnrollmentController::class, 'approve'])->name('enrollments.approve');
+    Route::put('enrollments/{enrollment}', [EnrollmentController::class, 'update'])->name('enrollments.update');
     Route::post('enrollments/{enrollment}/reject', [EnrollmentController::class, 'reject'])->name('enrollments.reject');
     Route::delete('enrollments/{enrollment}', [EnrollmentController::class, 'destroy'])->name('enrollments.destroy');
 });

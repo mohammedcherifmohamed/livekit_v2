@@ -50,12 +50,8 @@ class WebAuthController extends Controller
                 ])->onlyInput('email');
             }
         } elseif ($role === 'student') {
-            $student = Student::where('email', $credentials['email'])->first();
-            if ($student && $student->status !== 'approved') {
-                return back()->withErrors([
-                    'email' => 'Your student account is pending admin approval.',
-                ])->onlyInput('email');
-            }
+            // Students can always login to see their name/browse, 
+            // the 'check_enrollment' middleware handles dashboard access.
         }
 
         \Log::info("Login attempt for role: {$role} with email: {$credentials['email']}");
@@ -105,11 +101,11 @@ class WebAuthController extends Controller
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'password' => Hash::make($validated['password']),
-                'status' => 'pending',
+                'status' => 'approved', // Auto-approved
             ]);
         }
 
-        return redirect()->route('login')->with('status', 'Registration submitted. Please wait for admin approval before logging in.');
+        return redirect()->route('login')->with('success', 'Registration successful. You can now log in and enroll in courses.');
     }
 
     public function logout(Request $request)

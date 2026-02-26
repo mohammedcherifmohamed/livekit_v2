@@ -16,6 +16,7 @@ class CourseController extends Controller
         $user = Auth::guard('web')->user() ?? Auth::guard('teacher')->user() ?? Auth::guard('student')->user();
 
         if (Auth::guard('teacher')->check()) {
+            $user = Auth::guard('teacher')->user();
             // Teacher Dashboard: Their own courses
             $myCourses = Course::where('teacher_id', $user->id)
                 ->with('category')
@@ -23,17 +24,31 @@ class CourseController extends Controller
                 ->get();
             $activeCourses = collect();
         } elseif (Auth::guard('student')->check()) {
-            // Student Dashboard: Only courses in categories they are enrolled in
-            $categoryIds = $user->enrollments()->pluck('category_id');
+            $user = Auth::guard('student')->user();
+            // Student: Only courses in categories they have an APPROVED and NON-EXPIRED enrollment in
+            $enrollments = \App\Models\Enrollment::where('student_id', $user->id)
+                ->where('status', 'approved')
+                ->where(function ($query) {
+                    $query->whereNull('expires_at')
+                          ->orWhere('expires_at', '>', now());
+                })
+                ->get()
+                ->keyBy('category_id');
+
+            $categoryIds = $enrollments->keys();
             
-            $myCourses = collect(); // Students don't "own" courses
+            $myCourses = collect(); 
             $activeCourses = Course::whereIn('category_id', $categoryIds)
-                ->where('is_active', true)
                 ->with(['teacher', 'category'])
                 ->latest()
                 ->get();
+
+            // Attach enrollment info to each course for the view
+            foreach ($activeCourses as $course) {
+                $course->enrollment = $enrollments[$course->category_id] ?? null;
+            }
         } else {
-            // Admin or other: See everything (optional)
+            // Admin or other: See everything active
             $myCourses = collect();
             $activeCourses = Course::where('is_active', true)
                 ->with(['teacher', 'category'])

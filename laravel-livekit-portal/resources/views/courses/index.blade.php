@@ -143,47 +143,99 @@
         </section>
     @endif
 
-    {{-- ── LIVE NOW (active courses from other users) ── --}}
+    {{-- ── STUDENT COURSES ── --}}
     @if(!$isTeacher)
         <section>
-            <h2 class="text-lg font-bold uppercase tracking-wider text-green-400 mb-4 flex items-center gap-2">
-                <span class="h-2 w-2 rounded-full bg-green-400 inline-block animate-pulse"></span>
-                Live Now
+            <h2 class="text-lg font-bold uppercase tracking-wider text-indigo-400 mb-6 flex items-center gap-2">
+                <span class="h-2 w-2 rounded-full bg-indigo-400 inline-block"></span>
+                My Course Sessions
             </h2>
-
+    
             @if($activeCourses->isEmpty())
                 <div class="rounded-xl border border-dashed border-gray-700 p-10 text-center text-gray-500">
-                    No live sessions right now. Check back later.
+                    You aren't enrolled in any courses with available sessions.
                 </div>
             @else
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     @foreach($activeCourses as $course)
-                        <div class="flex flex-col justify-between rounded-xl bg-gray-800/60 border border-green-500/30 p-6 hover:border-green-400/60 transition">
+                        <div class="flex flex-col justify-between rounded-xl bg-gray-800/60 border {{ $course->is_active ? 'border-green-500/40 shadow-lg shadow-green-500/5' : 'border-gray-700' }} p-6 transition-all duration-300 hover:scale-[1.01]">
                             <div>
-                                <div class="flex items-center justify-between mb-3">
-                                    <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-green-500/20 text-green-300">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse"></span> Live
-                                    </span>
-                                    <span class="text-xs text-gray-500 font-mono">{{ $course->room_name }}</span>
+                                <div class="flex items-center justify-between mb-4">
+                                    @if($course->is_active)
+                                        <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-green-500/20 text-green-300 border border-green-500/30">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse"></span> Live Now
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-gray-700/50 text-gray-400 border border-gray-600/30">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-gray-500"></span> Offline
+                                        </span>
+                                    @endif
+                                    @if($course->category)
+                                        <span class="text-[10px] font-bold uppercase tracking-widest text-gray-500">{{ $course->category->name }}</span>
+                                    @endif
                                 </div>
-                                <h3 class="text-lg font-bold text-white mb-1">{{ $course->title }}</h3>
-                                @if($course->category)
-                                    <span class="inline-block px-2 py-1 bg-gray-700 text-gray-300 text-xs rounded mb-2">{{ $course->category->name }}</span>
-                                @endif
-                                @if($course->description)
-                                    <p class="text-sm text-gray-400 line-clamp-2">{{ $course->description }}</p>
-                                @endif
-                                <p class="text-xs text-gray-500 mt-2">by {{ $course->teacher->name }}</p>
-                            </div>
 
-                            <div class="mt-5">
-                                <a href="{{ route('room.show', $course->room_name) }}"
-                                   class="w-full flex justify-center items-center gap-2 py-2.5 bg-green-600 hover:bg-green-700 rounded-lg text-sm font-semibold transition">
-                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                <h3 class="text-xl font-bold text-white mb-0.5">{{ $course->title }}</h3>
+                                <p class="text-sm text-indigo-400/80 font-mono mb-4 flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-10V4a1 1 0 011-1h2a1 1 0 011 1v3M12 7h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                     </svg>
-                                    Join Session
-                                </a>
+                                    Room: {{ $course->room_name }}
+                                </p>
+
+                                @if($course->description)
+                                    <p class="text-sm text-gray-400 line-clamp-2 mb-4">{{ $course->description }}</p>
+                                @endif
+                                
+                                <div class="flex items-center gap-2 mb-4">
+                                    <div class="h-6 w-6 rounded-full bg-indigo-900/50 border border-indigo-500/30 flex items-center justify-center text-[10px] text-indigo-300 font-bold">
+                                        {{ substr($course->teacher->name, 0, 1) }}
+                                    </div>
+                                    <span class="text-xs text-gray-400 italic">by {{ $course->teacher->name }}</span>
+                                </div>
+
+                                {{-- Enrollment Validity Info --}}
+                                @if(isset($course->enrollment) && $course->enrollment->expires_at)
+                                    @php
+                                        $daysLeft = now()->diffInDays($course->enrollment->expires_at, false);
+                                        $isExpiringSoon = $daysLeft <= 5;
+                                    @endphp
+                                    <div class="mt-4 pt-4 border-t border-gray-700/50">
+                                        <div class="flex justify-between items-center mb-1.5">
+                                            <span class="text-[10px] uppercase font-bold tracking-wider text-gray-500">Access Until</span>
+                                            <span class="text-[10px] font-bold {{ $isExpiringSoon ? 'text-orange-400' : 'text-indigo-400' }}">
+                                                {{ floor($daysLeft) }} Days Remaining
+                                            </span>
+                                        </div>
+                                        <div class="w-full bg-gray-700/50 rounded-full h-1">
+                                            @php
+                                                $totalDays = $course->enrollment->validity_days > 0 ? $course->enrollment->validity_days : 1;
+                                                $percentage = max(0, min(100, ($daysLeft / $totalDays) * 100));
+                                            @endphp
+                                            <div class="h-1 rounded-full {{ $isExpiringSoon ? 'bg-orange-500' : 'bg-indigo-500' }}" style="width: {{ $percentage }}%"></div>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+    
+                            <div class="mt-6">
+                                @if($course->is_active)
+                                    <a href="{{ route('room.show', $course->room_name) }}"
+                                       class="w-full flex justify-center items-center gap-2 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold transition shadow-lg shadow-green-900/20">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                        </svg>
+                                        Join Live Session
+                                    </a>
+                                @else
+                                    <button disabled
+                                            class="w-full flex justify-center items-center gap-2 py-3 bg-gray-700/50 text-gray-500 cursor-not-allowed rounded-lg text-sm font-bold border border-gray-600/30">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                        </svg>
+                                        Waiting for Teacher
+                                    </button>
+                                @endif
                             </div>
                         </div>
                     @endforeach

@@ -31,8 +31,8 @@
                                     <a href="{{ route('admin.teachers.index') }}" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition">
                                         Teachers
                                     </a>
-                                    <a href="{{ route('admin.students.index') }}" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition">
-                                         Students
+
+
                                      </a>
                                      <a href="{{ route('admin.enrollments.index') }}" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition">
                                          Enrollments
@@ -74,7 +74,84 @@
                 </div>
             @endif
 
-            @yield('content')
+            @php
+                $isStudentPage = Auth::guard('student')->check() && (Route::currentRouteName() === 'dashboard' || Route::currentRouteName() === 'courses.index');
+                $studentEnrollments = [];
+                if ($isStudentPage) {
+                    $studentEnrollments = \App\Models\Enrollment::where('student_id', Auth::guard('student')->id())
+                        ->with('category')
+                        ->where('status', 'approved')
+                        ->where(function ($query) {
+                            $query->whereNull('expires_at')
+                                  ->orWhere('expires_at', '>', now());
+                        })
+                        ->get();
+                }
+            @endphp
+
+            <div class="{{ $isStudentPage ? 'flex flex-col lg:flex-row gap-8' : '' }}">
+                @if($isStudentPage && $studentEnrollments->isNotEmpty())
+                    {{-- Student Sidebar --}}
+                    <aside class="lg:w-80 flex-shrink-0">
+                        <div class="sticky top-10 space-y-6">
+                            <div class="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden shadow-xl">
+                                <div class="bg-indigo-600 px-6 py-4">
+                                    <h3 class="text-sm font-bold uppercase tracking-widest text-white flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                        </svg>
+                                        My Academy Access
+                                    </h3>
+                                </div>
+                                <div class="p-6">
+                                    <div class="space-y-6">
+                                        @foreach($studentEnrollments as $enrollment)
+                                            @php
+                                                $daysLeft = now()->diffInDays($enrollment->expires_at, false);
+                                                $isExpiringSoon = $daysLeft <= 5;
+                                                $totalDays = $enrollment->validity_days > 0 ? $enrollment->validity_days : 1;
+                                                $percentage = max(0, min(100, ($daysLeft / $totalDays) * 100));
+                                            @endphp
+                                            <div class="group">
+                                                <div class="flex justify-between items-start mb-2">
+                                                    <h4 class="text-sm font-bold text-white group-hover:text-indigo-400 transition">{{ $enrollment->category->name }}</h4>
+                                                </div>
+                                                <div class="flex justify-between items-center mb-1.5">
+                                                    <span class="text-[10px] uppercase font-semibold text-gray-500">Days Left</span>
+                                                    <span class="text-xs font-bold {{ $isExpiringSoon ? 'text-orange-400' : 'text-indigo-400' }}">
+                                                        {{ floor($daysLeft) }}
+                                                    </span>
+                                                </div>
+                                                <div class="w-full bg-gray-700/50 rounded-full h-1.5 mb-2">
+                                                    <div class="h-1.5 rounded-full {{ $isExpiringSoon ? 'bg-orange-500' : 'bg-indigo-500' }} transition-all duration-500" style="width: {{ $percentage }}%"></div>
+                                                </div>
+                                                <p class="text-[10px] text-gray-500 italic">
+                                                    Ends {{ $enrollment->expires_at->format('M d, Y') }}
+                                                </p>
+                                            </div>
+                                            @if(!$loop->last)
+                                                <hr class="border-gray-700/50">
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                </div>
+                                <div class="bg-gray-900/50 px-6 py-4 border-t border-gray-700">
+                                    <a href="{{ route('home.load') }}" class="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition flex items-center justify-center">
+                                        Browse More Courses
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+                @endif
+
+                <div class="flex-1">
+                    @yield('content')
+                </div>
+            </div>
         </div>
     </main>
 </body>
