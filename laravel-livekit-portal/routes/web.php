@@ -9,16 +9,18 @@ use App\Http\Controllers\CourseController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\TeacherController as AdminTeacherController;
 use App\Http\Controllers\Admin\StudentController as AdminStudentController;
+use App\Http\Controllers\EnrollController;
+use App\Http\Controllers\Admin\EnrollmentController;
 
 Route::get('/', function () {
     $categories = Category::orderBy('price', 'desc')->get();
     return view('welcome', compact('categories'));
-});
+})->name("home.load");
 
 
 
 Route::get('/categories/{category:slug}', [CategoryController::class, 'show'])->name('categories.show');
-Route::post('/categories/{category}/enroll', [CategoryController::class, 'enroll'])->name('categories.enroll')->middleware('auth:student');
+Route::post('/categories/{category}/enroll', [EnrollController::class, 'enrollCourse'])->name('categories.enroll')->middleware('auth:student');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [WebAuthController::class, 'showLogin'])->name('login');
@@ -32,7 +34,7 @@ Route::middleware('guest')->group(function () {
 
 
 
-Route::middleware('auth:web,teacher,student')->group(function () {
+Route::middleware(['auth:web,teacher,student', 'check_enrollment'])->group(function () {
     Route::post('/logout', [WebAuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', function () {
         return view('dashboard');
@@ -69,4 +71,10 @@ Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(
     Route::post('students/{student}/approve', [AdminStudentController::class, 'approve'])->name('students.approve');
     Route::post('students/{student}/reject', [AdminStudentController::class, 'reject'])->name('students.reject');
     Route::delete('students/{student}', [AdminStudentController::class, 'destroy'])->name('students.destroy');
+
+    // Enrollment management
+    Route::get('enrollments', [EnrollmentController::class, 'index'])->name('enrollments.index');
+    Route::post('enrollments/{enrollment}/approve', [EnrollmentController::class, 'approve'])->name('enrollments.approve');
+    Route::post('enrollments/{enrollment}/reject', [EnrollmentController::class, 'reject'])->name('enrollments.reject');
+    Route::delete('enrollments/{enrollment}', [EnrollmentController::class, 'destroy'])->name('enrollments.destroy');
 });

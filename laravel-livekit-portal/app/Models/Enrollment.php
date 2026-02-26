@@ -11,6 +11,14 @@ class Enrollment extends Model
     protected $fillable = [
         'student_id',
         'category_id',
+        'status',
+        'validity_days',
+        'expires_at',
+    ];
+
+    protected $casts = [
+        'expires_at' => 'datetime',
+        'validity_days' => 'integer',
     ];
 
     public function student()

@@ -15,7 +15,7 @@
             <div class="relative h-[250px] w-full rounded-3xl overflow-hidden shadow-2xl border border-gray-700">
                 <img src="{{ $category->image ?? 'https://via.placeholder.com/1200x600?text=' . urlencode($category->name) }}" 
                      alt="{{ $category->name }}" 
-                     class="w-full h-full object-cover">
+                     class="w-50 h-50 object-cover">
                 <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent"></div>
                 <div class="absolute bottom-8 left-8">
                     <h1 class="text-5xl font-extrabold text-white tracking-tighter">{{ $category->name }}</h1>
@@ -90,14 +90,14 @@
                     </div>
                 </div>
 
-                @if($isEnrolled)
-                    <div class="w-full bg-green-500/20 text-green-400 font-bold py-4 rounded-2xl text-center border border-green-500/30">
+                {{-- @if($isEnrolled) --}}
+                    {{-- <div class="w-full bg-green-500/20 text-green-400 font-bold py-4 rounded-2xl text-center border border-green-500/30">
                         ✓ Enrolled Successfully
                     </div>
                     <a href="{{ route('courses.index') }}" class="block text-center mt-4 text-indigo-400 hover:text-indigo-300 text-sm font-medium transition">
                         Go to My Learning Dashboard →
-                    </a>
-                @else
+                    </a> --}}
+                {{-- @else --}}
                     <form action="{{ route('categories.enroll', $category) }}" method="POST">
                         @csrf
                         <button type="submit" 
@@ -108,7 +108,7 @@
                     <p class="mt-4 text-[10px] text-gray-500 text-center uppercase tracking-widest leading-relaxed">
                         By enrolling, you agree to our Terms of Academy Access.
                     </p>
-                @endif
+                {{-- @endif --}}
             </div>
         </div>
     </div>

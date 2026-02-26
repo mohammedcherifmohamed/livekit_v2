@@ -36,7 +36,7 @@
                         <div class="relative h-32 overflow-hidden">
                             <img src="{{ $category->image ?? 'https://via.placeholder.com/800x400?text=' . urlencode($category->name) }}" 
                                  alt="{{ $category->name }}" 
-                                 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                 class="w-50 h-50 object-cover group-hover:scale-110 transition-transform duration-500">
                             <div class="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent"></div>
                             <div class="absolute bottom-4 left-4">
                                 <span class="bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-tighter shadow-lg">
